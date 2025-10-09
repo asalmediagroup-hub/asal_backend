@@ -1,0 +1,42 @@
+{
+  "name": "asal-api",
+  "version": "1.0.0",
+  "description": "Asal API – Node/Express backend powered by TypeScript",
+  "main": "dist/server.js",
+  "scripts": {
+  "dev": "cross-env NODE_ENV=development nodemon server.js",
+  "build": "npx tsc",
+  "start": "cross-env NODE_ENV=production node dist/server.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
+  "author": "Recent IT",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.18.0",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.0",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/mongoose": "^5.11.97",
+    "@types/multer": "^1.4.7",
+    "@types/cors": "^2.8.17",
+    "@types/bcryptjs": "^2.4.2",
+    "cross-env": "^10.0.0",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
