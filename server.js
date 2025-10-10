@@ -64,16 +64,29 @@ app.post("/api/uploads/image", upload.single("image"), (req, res) => {
 
 // ============ Middlewares ============
 
+// Security headers
 app.use(helmet());
+
+// TEMPORARY: Allow all origins
 app.use(
-    cors({
-        origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-        credentials: true,
-    })
+  cors({
+    origin: function (origin, callback) {
+      callback(null, true); // allow any origin
+    },
+    credentials: true, // allow cookies / authorization headers
+  })
 );
+
+// JSON body parser
 app.use(express.json());
+
+// Cookie parser
 app.use(cookieParser());
+
+// Request logger
 app.use(morgan("dev"));
+
+// Gzip compression
 app.use(compression());
 
 // ============ DB Connect ============
