@@ -69,12 +69,12 @@ app.use(helmet());
 
 // TEMPORARY: Allow all origins
 app.use(
-  cors({
-    origin: function (origin, callback) {
-      callback(null, true); // allow any origin
-    },
-    credentials: true, // allow cookies / authorization headers
-  })
+    cors({
+        origin: function (origin, callback) {
+            callback(null, true); // allow any origin
+        },
+        credentials: true, // allow cookies / authorization headers
+    })
 );
 
 // JSON body parser
@@ -111,6 +111,7 @@ app.use("/api/packages", require("./src/pqackages/routes"));
 app.use("/api/news", require("./src/news/routes"));
 app.use("/api/portfolio", require("./src/portfolio/routes"));
 app.use("/api/partners-reviews", require("./src/partnersReviews/routes"));
+app.use("/api/home", require("./src/home/route"));
 
 app.get("/", (_req, res) => res.send("API OK"));
 

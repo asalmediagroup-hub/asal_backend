@@ -102,6 +102,12 @@ exports.guard = async (req, res, next) => {
             if (raw === "category") return "categories";
             if (raw === "service") return "services";
             if (raw === "brand") return "brands";
+            if (raw === "role") return "roles";
+            if (raw === "brand") return "brands";
+            if (raw === "home") return "home";
+            if (raw === "about") return "about";
+            if (raw === "contact") return "contacts";
+            if (raw === "product") return "products";
             return raw || "";
         };
         const deriveAction = () => {
