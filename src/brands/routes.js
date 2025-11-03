@@ -1,6 +1,5 @@
 // src/brands/routes.js
 const router = require("express").Router();
-const path = require("path");
 
 const {
     listBrands,
@@ -10,9 +9,9 @@ const {
     deleteBrand,
 } = require("./controller");
 const { guard } = require("../users/auth/middleware");
-const { upload } = require("../config/upload");
+const { upload, toBase64 } = require("../config/upload");
 
-// Normalize multer files into req.body as web paths
+// Normalize multer files into req.body as base64 strings
 function mapFilesIntoBody(req, _res, next) {
     if (!req.body) req.body = {};
     if (!Array.isArray(req.files)) req.files = [];
@@ -23,18 +22,13 @@ function mapFilesIntoBody(req, _res, next) {
         return acc;
     }, {});
 
-    const toWeb = (f) => {
-        const name = f?.filename || (f?.path ? path.basename(f.path) : null);
-        return name ? `/uploads/${name}` : null;
-    };
-
-    // 1) Top-level single images → string path (/uploads/filename)
+    // 1) Top-level single images → base64 string
     const TOP = ["heroBgImage", "heroBgImageMobile", "aboutImage", "screenshotImage"];
     for (const k of TOP) {
         const f = byField[k]?.[0];
         if (f) {
-            const web = toWeb(f);
-            if (web) req.body[k] = web;
+            const base64 = toBase64(f);
+            if (base64) req.body[k] = base64;
         }
     }
 
@@ -53,8 +47,8 @@ function mapFilesIntoBody(req, _res, next) {
         if (!m) continue;
         const idx = Number(m[1]);
         const item = ensureItem(idx);
-        const web = toWeb(f);
-        if (web) item.image = web;
+        const base64 = toBase64(f);
+        if (base64) item.image = base64;
     }
 
     // 3) Merge featuredItems scalar fields that come as multipart keys:

@@ -7,8 +7,6 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const compression = require("compression");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 
 dotenv.config();
 
@@ -16,22 +14,8 @@ const app = express();
 
 // ============ Multer Setup ============
 
-// Upload directory
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
-
-// Ensure uploads directory exists
-if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-// Storage config using Date.now() for unique filenames
-const storage = multer.diskStorage({
-    destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
-    filename: (_req, file, cb) => {
-        const ext = path.extname(file.originalname || "").toLowerCase();
-        cb(null, `${Date.now()}${ext}`);
-    },
-});
+// Multer memory storage - stores file in memory as buffer
+const storage = multer.memoryStorage();
 
 // File filter to allow only images
 const fileFilter = (_req, file, cb) => {
@@ -45,20 +29,27 @@ const limits = { fileSize: parseInt(process.env.MAX_FILE_SIZE || "5242880", 10) 
 
 const upload = multer({ storage, fileFilter, limits });
 
-// Serve uploaded files statically
-app.use("/uploads", express.static(UPLOAD_DIR));
+// Helper function to convert buffer to base64
+function toBase64(file) {
+    if (!file || !file.buffer || !file.mimetype) return null;
+    const base64 = file.buffer.toString("base64");
+    return `data:${file.mimetype};base64,${base64}`;
+}
 
-// Upload route
+// Upload route - returns base64 encoded image
 app.post("/api/uploads/image", upload.single("image"), (req, res) => {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    // Public URL for the file
-    const url = `/uploads/${req.file.filename}`;
+    const base64Image = toBase64(req.file);
+    if (!base64Image) {
+        return res.status(400).json({ message: "Failed to process image" });
+    }
+
     return res.status(201).json({
-        filename: req.file.filename,
-        url,
+        image: base64Image,
         size: req.file.size,
         mimetype: req.file.mimetype,
+        originalname: req.file.originalname,
     });
 });
 

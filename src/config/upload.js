@@ -1,27 +1,7 @@
-const path = require("path");
-const fs = require("fs");
 const multer = require("multer");
 
-// Directory where uploads are stored
-const UPLOAD_DIR = path.join(__dirname, "../../uploads");
-
-// Ensure the uploads folder exists
-if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-}
-
-// Multer disk storage
-const storage = multer.diskStorage({
-    destination: function (_req, _file, cb) {
-        cb(null, UPLOAD_DIR);
-    },
-    filename: function (_req, file, cb) {
-        // Keep original extension; prepend timestamp to avoid name collisions
-        const ext = path.extname(file.originalname);
-        const base = path.basename(file.originalname, ext);
-        cb(null, `${base}-${Date.now()}${ext}`);
-    },
-});
+// Multer memory storage - stores file in memory as buffer
+const storage = multer.memoryStorage();
 
 // File filter (optional: only allow images)
 function fileFilter(_req, file, cb) {
@@ -38,4 +18,15 @@ const upload = multer({
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
 });
 
-module.exports = { upload, UPLOAD_DIR };
+/**
+ * Convert file buffer to base64 data URI
+ * @param {Object} file - Multer file object with buffer and mimetype
+ * @returns {string|null} - Base64 data URI or null if invalid
+ */
+function toBase64(file) {
+    if (!file || !file.buffer || !file.mimetype) return null;
+    const base64 = file.buffer.toString("base64");
+    return `data:${file.mimetype};base64,${base64}`;
+}
+
+module.exports = { upload, toBase64 };

@@ -1,6 +1,5 @@
 // src/portfolio/routes.js
 const router = require("express").Router();
-const path = require("path");
 
 const {
     listPortfolio,
@@ -11,9 +10,9 @@ const {
 } = require("./controller");
 
 const { guard } = require("../users/auth/middleware");
-const { upload } = require("../config/upload");
+const { upload, toBase64 } = require("../config/upload");
 
-// Normalize multer files into req.body as web paths (items[i][image])
+// Normalize multer files into req.body as base64 strings (items[i][image])
 function mapFilesIntoBody(req, _res, next) {
     if (!req.body) req.body = {};
     if (!Array.isArray(req.files)) req.files = [];
@@ -23,11 +22,6 @@ function mapFilesIntoBody(req, _res, next) {
         (acc[f.fieldname] ||= []).push(f);
         return acc;
     }, {});
-
-    const toWeb = (f) => {
-        const name = f?.filename || (f?.path ? path.basename(f.path) : null);
-        return name ? `/uploads/${name}` : null;
-    };
 
     // Ensure items array is present for merging
     if (!req.body.items) req.body.items = [];
@@ -39,14 +33,14 @@ function mapFilesIntoBody(req, _res, next) {
         return req.body.items[i];
     };
 
-    // 1) items[i][image] files → set image web path per index
+    // 1) items[i][image] files → set image base64 string per index
     for (const f of req.files) {
         const m = /^items\[(\d+)\]\[image\]$/.exec(f.fieldname);
         if (!m) continue;
         const idx = Number(m[1]);
         const item = ensureItem(idx);
-        const web = toWeb(f);
-        if (web) item.image = web;
+        const base64 = toBase64(f);
+        if (base64) item.image = base64;
     }
 
     // 2) Merge items scalar fields coming as multipart keys:

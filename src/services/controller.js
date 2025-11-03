@@ -93,13 +93,10 @@ exports.createService = async (req, res) => {
     }
 
     // Image handling:
-    // - If multer attached a file => use uploaded URL
-    // - Else if body.image is a non-empty string => keep it
+    // - If body.image is a base64 string => use it
     // - Else => set null
     let image = null;
-    if (req.file) {
-      image = `/uploads/${req.file.filename}`;
-    } else if (typeof req.body.image === "string" && req.body.image.trim()) {
+    if (typeof req.body.image === "string" && req.body.image.trim()) {
       image = req.body.image.trim();
     } else {
       image = null;
@@ -183,14 +180,11 @@ exports.updateService = async (req, res) => {
     if (update.order !== undefined) update.order = Number(update.order) || 0;
 
     // Image management:
-    // - If req.file exists (multer) -> replace image with uploaded file URL
-    // - Else if "image" key is present:
+    // - If "image" key is present:
     //     - if empty string / "null" / null -> set to null (clear)
-    //     - if non-empty string -> set that value
-    // - Else (no file, no image key) -> do NOT touch image
-    if (req.file) {
-      update.image = `/uploads/${req.file.filename}`;
-    } else if (Object.prototype.hasOwnProperty.call(update, "image")) {
+    //     - if non-empty string (base64) -> set that value
+    // - Else (no image key) -> do NOT touch image
+    if (Object.prototype.hasOwnProperty.call(update, "image")) {
       if (
         update.image === null ||
         (typeof update.image === "string" && update.image.trim().length === 0) ||

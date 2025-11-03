@@ -1,6 +1,5 @@
 // src/packages/routes.js
 const router = require("express").Router();
-const path = require("path");
 
 const {
     listPackages,
@@ -11,7 +10,7 @@ const {
 } = require("./controller");
 
 const { guard } = require("../users/auth/middleware");
-const { upload } = require("../config/upload");
+const { upload, toBase64 } = require("../config/upload");
 
 /**
  * Normalize multer files + multipart fields into req.body for featuredStories.
@@ -29,11 +28,6 @@ function mapFilesIntoBody(req, _res, next) {
         (acc[f.fieldname] ||= []).push(f);
         return acc;
     }, {});
-
-    const toWeb = (f) => {
-        const name = f?.filename || (f?.path ? path.basename(f.path) : null);
-        return name ? `/uploads/${name}` : null;
-    };
 
     // Ensure array
     if (!Array.isArray(req.body.featuredStories)) {
@@ -57,7 +51,7 @@ function mapFilesIntoBody(req, _res, next) {
         return req.body.featuredStories[i];
     };
 
-    // 1) Map uploaded images for both bracket & dotted notations
+    // 1) Map uploaded images for both bracket & dotted notations - convert to base64
     for (const f of req.files) {
         let m =
             /^featuredStories\[(\d+)\]\[image\]$/.exec(f.fieldname) ||
@@ -65,8 +59,8 @@ function mapFilesIntoBody(req, _res, next) {
         if (!m) continue;
         const idx = Number(m[1]);
         const story = ensureStory(idx);
-        const web = toWeb(f);
-        if (web) story.image = web;
+        const base64 = toBase64(f);
+        if (base64) story.image = base64;
     }
 
     // 2) Merge scalar fields that come as multipart keys:

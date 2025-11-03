@@ -1,6 +1,5 @@
 // src/partnersReviews/routes.js
 const router = require("express").Router();
-const path = require("path");
 
 const {
     listPartnersReviews,
@@ -11,7 +10,7 @@ const {
 } = require("./controller");
 
 const { guard } = require("../users/auth/middleware");
-const { upload } = require("../config/upload");
+const { upload, toBase64 } = require("../config/upload");
 
 // Normalize multer files & multipart scalar fields into req.body
 function mapFilesIntoBody(req, _res, next) {
@@ -24,25 +23,20 @@ function mapFilesIntoBody(req, _res, next) {
         return acc;
     }, {});
 
-    const toWeb = (f) => {
-        const name = f?.filename || (f?.path ? path.basename(f.path) : null);
-        return name ? `/uploads/${name}` : null;
-    };
-
     // If later you add any top-level images (e.g., bannerImage), list them here:
     // const TOP = ["bannerImage"];
     const TOP = [];
     for (const k of TOP) {
         const f = byField[k]?.[0];
         if (f) {
-            const web = toWeb(f);
-            if (web) req.body[k] = web;
+            const base64 = toBase64(f);
+            if (base64) req.body[k] = base64;
         }
     }
 
     // Ensure items is an array we can mutate (when using multipart)
     if (!req.body.items || typeof req.body.items === "string") {
-        // For multipart we’ll rebuild from individual keys like items[0][...]
+        // For multipart we'll rebuild from individual keys like items[0][...]
         req.body.items = [];
     }
     const ensureItem = (i) => {
@@ -59,8 +53,8 @@ function mapFilesIntoBody(req, _res, next) {
         if (!m) continue;
         const idx = Number(m[1]);
         const item = ensureItem(idx);
-        const web = toWeb(f);
-        if (web) item.image = web;
+        const base64 = toBase64(f);
+        if (base64) item.image = base64;
     }
 
     // Merge scalar fields coming as multipart keys:
